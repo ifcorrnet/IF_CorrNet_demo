@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IF-CorrNet: Speech Dereverberation Demo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg: #ffffff;
+      --surface: #ffffff;
+      --surface-2: #f7f8fa;
+      --border: rgba(0,0,0,.10);
+      --shadow: 0 12px 34px rgba(0,0,0,.08);
+      --text: #111827;
+      --muted: #6b7280;
+
+      --accent: #2563eb;
+      --accent-weak: rgba(37, 99, 235, .10);
+
+      --danger: #b91c1c;
+      --danger-weak: rgba(239, 68, 68, .12);
+
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --radius-sm: 10px;
+
+      --container: 1100px;
+    }
+
+    *{ box-sizing: border-box; }
+    html, body{ height: 100%; }
+    body{
+      margin: 0;
+      font-family: 'Roboto', sans-serif;
+      line-height: 1.65;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    /* Layout */
+    .page{
+      max-width: var(--container);
+      margin: 0 auto;
+      padding: 42px 18px 28px;
+    }
+
+    /* Header */
+    header{
+      text-align: center;
+      padding: 14px 0 28px;
+      margin-bottom: 28px;
+    }
+
+    h1{
+      margin: 0 0 10px;
+      font-size: clamp(26px, 3vw, 38px);
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+
+    .authors{
+      font-size: 1.02rem;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .affiliations{
+      font-size: 0.95rem;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .links{
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .links a{
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 700;
+      transition: transform .12s ease, background .12s ease, border-color .12s ease;
+    }
+    .links a:hover{
+      transform: translateY(-1px);
+      background: var(--surface-2);
+      border-color: rgba(0,0,0,.14);
+    }
+
+    /* Section */
+    .section{
+      margin: 26px auto;
+    }
+
+    .section-title{
+      display: flex;
+      align-items: baseline;
+      justify-content: left;
+      gap: 10px;
+      margin: 0 0 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(0,0,0,.08);
+    }
+    .section-title h2{
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: -0.01em;
+    }
+
+
+.lead{
+  text-align: justify;
+  max-width: 1080px;
+  margin: 16px auto 0;
+}
+    
+    /* Card */
+    .card{
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      margin: 0 auto;
+    }
+
+    .card p{
+      margin: 0;
+      color: var(--text);
+    }
+
+    /* Abstract */
+    .abstract-text{
+      background: var(--surface-2);
+      border: 1px solid rgba(0,0,0,.06);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      text-align: justify;
+    }
+
+    /* Architecture */
+    .figure{
+      display: grid;
+      gap: 12px;
+      justify-items: center;
+    }
+    .figure img{
+      width: 100%;
+      max-width: 660px;
+      height: auto;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(0,0,0,.10);
+      background: #fff;
+    }
+    .caption{
+      max-width: 860px;
+      text-align: justify;
+      color: var(--text);
+    }
+
+    .caption strong{ color: var(--text); }
+
+    /* Table */
+    .table-wrap{
+      display: grid;
+      justify-items: center;
+      margin-top: 14px;
+    }
+    table{
+      width: min(520px, 100%);
+      border-collapse: separate;
+      border-spacing: 0;
+      overflow: hidden;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(0,0,0,.10);
+      background: #fff;
+      text-align: left;
+    }
+    thead th{
+      padding: 12px 14px;
+      background: var(--accent-weak);
+      color: #0f172a;
+      font-weight: 800;
+      font-size: 16px;
+      border-bottom: 1px solid rgba(0,0,0,.08);
+    }
+    tbody td{
+      padding: 12px 14px;
+      font-size: 16px;
+      border-bottom: 1px solid rgba(0,0,0,.06);
+      vertical-align: middle;
+    }
+    tbody tr:nth-child(even){ background: rgba(0,0,0,.02); }
+    tbody tr:hover{ background: rgba(37, 99, 235, .06); transition: background .12s ease; }
+    td:last-child, th:last-child{
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    tbody tr:last-child td{ border-bottom: none; }
+
+    .best{
+      background: var(--danger-weak) !important;
+      outline: 2px solid rgba(239, 68, 68, .28);
+      outline-offset: -2px;
+    }
+    .best-score{
+      font-weight: 900;
+      color: var(--danger);
+    }
+
+    /* Sample selector */
+    .sample-selector{
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 16px 0 0;
+    }
+    .sample-selector label{
+      font-weight: 800;
+      color: var(--text);
+    }
+    .sample-selector select{
+      padding: 10px 14px;
+      font-size: 0.98rem;
+      border: 1px solid rgba(0,0,0,.18);
+      border-radius: 999px;
+      background: #fff;
+      cursor: pointer;
+      transition: border-color .12s ease, box-shadow .12s ease;
+      outline: none;
+    }
+    .sample-selector select:focus{
+      border-color: rgba(37, 99, 235, .55);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, .12);
+    }
+
+    /* Comparison grid */
+    .comparison-grid{
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .comparison-item{
+      background: var(--surface);
+      border: 1px solid rgba(0,0,0,.10);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 10px 26px rgba(0,0,0,.06);
+      padding: 14px;
+      transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+    }
+    .comparison-item:hover{
+      transform: translateY(-2px);
+      box-shadow: 0 14px 34px rgba(0,0,0,.10);
+      border-color: rgba(0,0,0,.14);
+    }
+
+    .comparison-item h3{
+      margin: 0 0 10px;
+      font-size: 15px;
+      font-weight: 900;
+      color: #0f172a;
+      text-align: center;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(0,0,0,.08);
+    }
+    .comparison-item.input{
+      grid-column: auto;
+    }
+
+    .comparison-item.input h3{
+      color: #0f172a;
+    }
+    
+    .comparison-item.ours{
+      grid-column: auto;
+      border-color: rgba(239, 68, 68, .25);
+      background: rgba(239, 68, 68, .06);
+    }
+
+    .comparison-item.ours h3{
+      color: var(--danger);
+    }
+    .badge{
+      display: inline-block;
+      margin-left: 8px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+      color: var(--danger);
+      background: rgba(239, 68, 68, .12);
+      border: 1px solid rgba(239, 68, 68, .22);
+      vertical-align: middle;
+    }
+   .spec-img{
+      width: 100%;
+      height: auto;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(0,0,0,.10);
+      background: #fff;
+      margin-bottom: 10px;
+    }
+
+
+    
+    audio{ width: 100%; margin-top: 6px; }
+
+    .sample-item{ display: none; }
+    .sample-item.active{ display: block; }
+
+    footer{
+      text-align: center;
+      padding: 18px 0 6px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      border-top: 1px solid rgba(0,0,0,.08);
+      margin-top: 34px;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px){
+      .comparison-grid{ grid-template-columns: 1fr; }
+      .comparison-item.input{ grid-column: auto; }
+    }
+
+    @media (max-width: 420px){
+      .page{ padding: 32px 14px 22px; }
+      .card{ padding: 14px; }
+      table thead th, table tbody td{ padding: 10px 12px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+
+    <header>
+      <h1>Inter-Frame Correlation for Deep Filter Estimation<br>in Speech Dereverberation</h1>
+
+      <div class="authors">Ui-Hyeop Shin¹, Jun Hyung Kim¹, Jangyeon Kim², Wooseok Kim², Hyung-Min Park¹,²,³</div>
+
+      <div class="affiliations">
+        ¹Department of Electronic Engineering, Sogang University, Seoul, Republic of Korea<br>
+        ²Department of Artificial Intelligence, Sogang University, Seoul, Republic of Korea<br>
+        ³mpWAV Inc., Seoul, Republic of Korea
+      </div>
+
+      <div class="links">
+        <a href="#">Paper</a>
+        <a href="https://github.com/dmlguq456/IF_CorrNet">GitHub</a>
+      </div>
+    </header>
+
+    <!-- Abstract -->
+    <section class="section">
+      <div class="section-title"><h2>Abstract</h2></div>
+      <div class="card">
+        <p class="abstract-text">
+          Speech dereverberation is critical for intelligibility when speech is recorded by a distant microphone, where long-tail reflections degrade temporal and spectral details.
+          Unlike additive noise, late reverberation remains tightly correlated with the target signal, which makes suppression more difficult.
+          Conventional deep learning approaches treat dereverberation as part of a broader enhancement pipeline by feeding raw complex STFT frames into a network to disentangle reverberation and noise from the target signal, often resulting in large models and suboptimal convergence.
+          We propose IF-CorrNet, a correlation-to-filter architecture that explicitly exploits inter-frame STFT correlations.
+          For each time–frequency bin, we compute correlations with adjacent frames and use these features to estimate multi-frame dereverberation filters.
+          With explicit filter estimation from inter-frame correlation, IF-CorrNet simplifies the learning process and improves robustness, effectively mitigating overfitting on mismatched real-world recordings compared to existing models.
+          Experimental results on the REVERB Challenge dataset demonstrate consistent improvements in reverberation and noise reduction over conventional methods.
+        </p>
+      </div>
+    </section>
+
+    <!-- Model Architecture -->
+    <section class="section">
+      <div class="section-title"><h2>Model Architecture</h2></div>
+      <div class="card figure">
+        <img src="architecture_IF_CorrNet.png" alt="IF-CorrNet Model Architecture">
+        <p class="caption">
+          <strong>Figure 1: IF-CorrNet Architecture.</strong>
+          The proposed IF-CorrNet consists of three main components:
+          (1) <strong>Inter-Frame Correlation Module</strong> that captures temporal dependencies across adjacent frames by computing correlation features,
+          (2) <strong>Backbone TF-modelling Network</strong> that processes temporal and frequency sequences based on modified Locoformer, and
+          (3) <strong>Multi-Frame Filter Estimation Module</strong> that predicts spectral filters across multiple frames for effective dereverberation.
+          Unlike conventional single-frame masking approaches, our method explicitly models the temporal structure of reverberation through inter-frame correlations,
+          enabling more accurate and robust speech dereverberation.
+        </p>
+      </div>
+    </section>
+
+    <!-- SRMR Results -->
+    <section class="section">
+      <div class="section-title"><h2>SRMR Results on RealData of REVERB Challenge Dataset</h2></div>
+      <div class="card">
+        <p class="lead">
+          Speech-to-Reverberation Modulation Energy Ratio (SRMR) is a non-intrusive metric that measures speech quality in reverberant conditions.
+          Higher SRMR scores indicate better perceptual quality with less reverberation.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Method</th>
+                <th>SRMR</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Input (Reverberant)</td>
+                <td>3.180</td>
+              </tr>
+              <tr>
+                <td>SF-Raw + SF-Mask</td>
+                <td>7.245</td>
+              </tr>
+              <tr>
+                <td>SF-Raw + MF-Filter</td>
+                <td>7.225</td>
+              </tr>
+              <tr>
+                <td>SF-Raw + Mapping</td>
+                <td>6.628</td>
+              </tr>
+              <tr class="best">
+                <td><strong>IF-Corr + MF-Filter (Ours)</strong></td>
+                <td class="best-score">7.548</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Samples -->
+    <section class="section">
+      <div class="section-title"><h2>Real-world Recording Samples (RealData)</h2></div>
+      <div class="card">
+        <p class="lead">
+          Comparative results on the REVERB Challenge RealData evaluation set.
+          Select a sample to compare the input with different architectural configurations.
+        </p>
+
+        <div class="sample-selector">
+          <label for="sample-select">Select Sample:</label>
+          <select id="sample-select" onchange="changeSample()">
+            <option value="0">AMI_WSJ26-Array2-1_T36c020s</option>
+            <option value="6">AMI_WSJ24-Array1-1_T24c020j</option>
+            <option value="2">AMI_WSJ21-Array2-1_T21c020y</option>
+            <option value="3">AMI_WSJ23-Array1-1_T23c0202</option>
+            <option value="4">AMI_WSJ23-Array1-1_T23c020f</option>
+            <option value="5">AMI_WSJ21-Array2-1_T21c020a</option>
+            <option value="1">AMI_WSJ24-Array1-1_T24c020p</option>
+            <option value="7">AMI_WSJ24-Array2-1_T24c020z</option>
+            <option value="8">AMI_WSJ25-Array1-1_T25c0207</option>
+            <option value="9">AMI_WSJ21-Array1-5_T21c020j</option>
+            <option value="10">AMI_WSJ27-Array2-1_T37c020m</option>
+            <option value="11">AMI_WSJ29-Array1-1_T39c020l</option>
+            <option value="12">AMI_WSJ29-Array1-1_T39c020q</option>
+            <option value="13">AMI_WSJ29-Array2-1_T39c0212</option>
+          </select>
+        </div>
+
+
+    <div id="sample-container">
+        <div class="sample-item active" data-sample="0">
+            <div class="comparison-grid">
+                <div class="comparison-item input">
+                    <h3>Input (Reverberant)</h3>
+                    <img src="demo_sample_jpg/input/AMI_WSJ26-Array2-1_T36c020s.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/input/AMI_WSJ26-Array2-1_T36c020s.wav"></audio>
+                </div>
+                <div class="comparison-item ours">
+                    <h3>IF-Corr + MF-Filter (Ours)</h3>
+                    <img src="demo_sample_jpg/Corr_Filter/AMI_WSJ26-Array2-1_T36c020s.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Corr_Filter/AMI_WSJ26-Array2-1_T36c020s.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + MF-Filter</h3>
+                    <img src="demo_sample_jpg/Raw_Filter/AMI_WSJ26-Array2-1_T36c020s.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Filter/AMI_WSJ26-Array2-1_T36c020s.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + SF-Mask</h3>
+                    <img src="demo_sample_jpg/Raw_Mask/AMI_WSJ26-Array2-1_T36c020s.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Mask/AMI_WSJ26-Array2-1_T36c020s.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + Mapping</h3>
+                    <img src="demo_sample_jpg/Raw_Mapping/AMI_WSJ26-Array2-1_T36c020s.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Mapping/AMI_WSJ26-Array2-1_T36c020s.wav"></audio>
+                </div>
+            </div>
+        </div>
+        
+        <div class="sample-item" data-sample="5">
+            <div class="comparison-grid">
+                <div class="comparison-item input">
+                    <h3>Input (Reverberant)</h3>
+                    <img src="demo_sample_jpg/input/AMI_WSJ24-Array1-1_T24c020j.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/input/AMI_WSJ24-Array1-1_T24c020j.wav"></audio>
+                </div>
+                <div class="comparison-item ours">
+                    <h3>IF-Corr + MF-Filter (Ours)</h3>
+                    <img src="demo_sample_jpg/Corr_Filter/AMI_WSJ24-Array1-1_T24c020j.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Corr_Filter/AMI_WSJ24-Array1-1_T24c020j.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + MF-Filter</h3>
+                    <img src="demo_sample_jpg/Raw_Filter/AMI_WSJ24-Array1-1_T24c020j.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Filter/AMI_WSJ24-Array1-1_T24c020j.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + SF-Mask</h3>
+                    <img src="demo_sample_jpg/Raw_Mask/AMI_WSJ24-Array1-1_T24c020j.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Mask/AMI_WSJ24-Array1-1_T24c020j.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + Mapping</h3>
+                    <img src="demo_sample_jpg/Raw_Mapping/AMI_WSJ24-Array1-1_T24c020j.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Mapping/AMI_WSJ24-Array1-1_T24c020j.wav"></audio>
+                </div>
+            </div>
+        </div>
+        
+        <div class="sample-item" data-sample="6">
+            <div class="comparison-grid">
+                <div class="comparison-item input">
+                    <h3>Input (Reverberant)</h3>
+                    <img src="demo_sample_jpg/input/AMI_WSJ21-Array2-1_T21c020a.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/input/AMI_WSJ21-Array2-1_T21c020a.wav"></audio>
+                </div>
+                <div class="comparison-item ours">
+                    <h3>IF-Corr + MF-Filter (Ours)</h3>
+                    <img src="demo_sample_jpg/Corr_Filter/AMI_WSJ21-Array2-1_T21c020a.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Corr_Filter/AMI_WSJ21-Array2-1_T21c020a.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + MF-Filter</h3>
+                    <img src="demo_sample_jpg/Raw_Filter/AMI_WSJ21-Array2-1_T21c020a.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Filter/AMI_WSJ21-Array2-1_T21c020a.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + SF-Mask</h3>
+                    <img src="demo_sample_jpg/Raw_Mask/AMI_WSJ21-Array2-1_T21c020a.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Mask/AMI_WSJ21-Array2-1_T21c020a.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + Mapping</h3>
+                    <img src="demo_sample_jpg/Raw_Mapping/AMI_WSJ21-Array2-1_T21c020a.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Mapping/AMI_WSJ21-Array2-1_T21c020a.wav"></audio>
+                </div>
+            </div>
+        </div>
+
+        <div class="sample-item" data-sample="2">
+            <div class="comparison-grid">
+                <div class="comparison-item input">
+                    <h3>Input (Reverberant)</h3>
+                    <img src="demo_sample_jpg/input/AMI_WSJ21-Array2-1_T21c020y.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/input/AMI_WSJ21-Array2-1_T21c020y.wav"></audio>
+                </div>
+                <div class="comparison-item ours">
+                    <h3>IF-Corr + MF-Filter (Ours)</h3>
+                    <img src="demo_sample_jpg/Corr_Filter/AMI_WSJ21-Array2-1_T21c020y.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Corr_Filter/AMI_WSJ21-Array2-1_T21c020y.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + MF-Filter</h3>
+                    <img src="demo_sample_jpg/Raw_Filter/AMI_WSJ21-Array2-1_T21c020y.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Filter/AMI_WSJ21-Array2-1_T21c020y.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + SF-Mask</h3>
+                    <img src="demo_sample_jpg/Raw_Mask/AMI_WSJ21-Array2-1_T21c020y.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Mask/AMI_WSJ21-Array2-1_T21c020y.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + Mapping</h3>
+                    <img src="demo_sample_jpg/Raw_Mapping/AMI_WSJ21-Array2-1_T21c020y.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Mapping/AMI_WSJ21-Array2-1_T21c020y.wav"></audio>
+                </div>
+            </div>
+        </div>
+
+        <div class="sample-item" data-sample="3">
+            <div class="comparison-grid">
+                <div class="comparison-item input">
+                    <h3>Input (Reverberant)</h3>
+                    <img src="demo_sample_jpg/input/AMI_WSJ23-Array1-1_T23c0202.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/input/AMI_WSJ23-Array1-1_T23c0202.wav"></audio>
+                </div>
+                <div class="comparison-item ours">
+                    <h3>IF-Corr + MF-Filter (Ours)</h3>
+                    <img src="demo_sample_jpg/Corr_Filter/AMI_WSJ23-Array1-1_T23c0202.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Corr_Filter/AMI_WSJ23-Array1-1_T23c0202.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + MF-Filter</h3>
+                    <img src="demo_sample_jpg/Raw_Filter/AMI_WSJ23-Array1-1_T23c0202.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Filter/AMI_WSJ23-Array1-1_T23c0202.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + SF-Mask</h3>
+                    <img src="demo_sample_jpg/Raw_Mask/AMI_WSJ23-Array1-1_T23c0202.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Mask/AMI_WSJ23-Array1-1_T23c0202.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + Mapping</h3>
+                    <img src="demo_sample_jpg/Raw_Mapping/AMI_WSJ23-Array1-1_T23c0202.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Mapping/AMI_WSJ23-Array1-1_T23c0202.wav"></audio>
+                </div>
+            </div>
+        </div>
+
+        <div class="sample-item" data-sample="4">
+            <div class="comparison-grid">
+                <div class="comparison-item input">
+                    <h3>Input (Reverberant)</h3>
+                    <img src="demo_sample_jpg/input/AMI_WSJ23-Array1-1_T23c020f.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/input/AMI_WSJ23-Array1-1_T23c020f.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>IF-Corr + MF-Filter (Ours)</h3>
+                    <img src="demo_sample_jpg/Corr_Filter/AMI_WSJ23-Array1-1_T23c020f.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Corr_Filter/AMI_WSJ23-Array1-1_T23c020f.wav"></audio>
+                </div>
+                <div class="comparison-item ours">
+                    <h3>SF-Raw + MF-Filter</h3>
+                    <img src="demo_sample_jpg/Raw_Filter/AMI_WSJ23-Array1-1_T23c020f.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Filter/AMI_WSJ23-Array1-1_T23c020f.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + SF-Mask</h3>
+                    <img src="demo_sample_jpg/Raw_Mask/AMI_WSJ23-Array1-1_T23c020f.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Mask/AMI_WSJ23-Array1-1_T23c020f.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + Mapping</h3>
+                    <img src="demo_sample_jpg/Raw_Mapping/AMI_WSJ23-Array1-1_T23c020f.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Mapping/AMI_WSJ23-Array1-1_T23c020f.wav"></audio>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="sample-item" data-sample="1">
+            <div class="comparison-grid">
+                <div class="comparison-item input">
+                    <h3>Input (Reverberant)</h3>
+                    <img src="demo_sample_jpg/input/AMI_WSJ24-Array1-1_T24c020p.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/input/AMI_WSJ24-Array1-1_T24c020p.wav"></audio>
+                </div>
+                <div class="comparison-item ours">
+                    <h3>IF-Corr + MF-Filter (Ours)</h3>
+                    <img src="demo_sample_jpg/Corr_Filter/AMI_WSJ24-Array1-1_T24c020p.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Corr_Filter/AMI_WSJ24-Array1-1_T24c020p.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + MF-Filter</h3>
+                    <img src="demo_sample_jpg/Raw_Filter/AMI_WSJ24-Array1-1_T24c020p.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Filter/AMI_WSJ24-Array1-1_T24c020p.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + SF-Mask</h3>
+                    <img src="demo_sample_jpg/Raw_Mask/AMI_WSJ24-Array1-1_T24c020p.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Mask/AMI_WSJ24-Array1-1_T24c020p.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + Mapping</h3>
+                    <img src="demo_sample_jpg/Raw_Mapping/AMI_WSJ24-Array1-1_T24c020p.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Mapping/AMI_WSJ24-Array1-1_T24c020p.wav"></audio>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sample 7 -->
+        <div class="sample-item" data-sample="7">
+            <div class="comparison-grid">
+                <div class="comparison-item input">
+                    <h3>Input (Reverberant)</h3>
+                    <img src="demo_sample_jpg/input/AMI_WSJ24-Array2-1_T24c020z.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/input/AMI_WSJ24-Array2-1_T24c020z.wav"></audio>
+                </div>
+                <div class="comparison-item ours">
+                    <h3>IF-Corr + MF-Filter (Ours)</h3>
+                    <img src="demo_sample_jpg/Corr_Filter/AMI_WSJ24-Array2-1_T24c020z.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Corr_Filter/AMI_WSJ24-Array2-1_T24c020z.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + MF-Filter</h3>
+                    <img src="demo_sample_jpg/Raw_Filter/AMI_WSJ24-Array2-1_T24c020z.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Filter/AMI_WSJ24-Array2-1_T24c020z.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + SF-Mask</h3>
+                    <img src="demo_sample_jpg/Raw_Mask/AMI_WSJ24-Array2-1_T24c020z.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Mask/AMI_WSJ24-Array2-1_T24c020z.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + Mapping</h3>
+                    <img src="demo_sample_jpg/Raw_Mapping/AMI_WSJ24-Array2-1_T24c020z.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Mapping/AMI_WSJ24-Array2-1_T24c020z.wav"></audio>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sample 8 -->
+        <div class="sample-item" data-sample="8">
+            <div class="comparison-grid">
+                <div class="comparison-item input">
+                    <h3>Input (Reverberant)</h3>
+                    <img src="demo_sample_jpg/input/AMI_WSJ25-Array1-1_T25c0207.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/input/AMI_WSJ25-Array1-1_T25c0207.wav"></audio>
+                </div>
+                <div class="comparison-item ours">
+                    <h3>IF-Corr + MF-Filter (Ours)</h3>
+                    <img src="demo_sample_jpg/Corr_Filter/AMI_WSJ25-Array1-1_T25c0207.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Corr_Filter/AMI_WSJ25-Array1-1_T25c0207.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + MF-Filter</h3>
+                    <img src="demo_sample_jpg/Raw_Filter/AMI_WSJ25-Array1-1_T25c0207.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Filter/AMI_WSJ25-Array1-1_T25c0207.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + SF-Mask</h3>
+                    <img src="demo_sample_jpg/Raw_Mask/AMI_WSJ25-Array1-1_T25c0207.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Mask/AMI_WSJ25-Array1-1_T25c0207.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + Mapping</h3>
+                    <img src="demo_sample_jpg/Raw_Mapping/AMI_WSJ25-Array1-1_T25c0207.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Mapping/AMI_WSJ25-Array1-1_T25c0207.wav"></audio>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sample 9 -->
+        <div class="sample-item" data-sample="9">
+            <div class="comparison-grid">
+                <div class="comparison-item input">
+                    <h3>Input (Reverberant)</h3>
+                    <img src="demo_sample_jpg/input/AMI_WSJ21-Array1-5_T21c020j.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/input/AMI_WSJ21-Array1-5_T21c020j.wav"></audio>
+                </div>
+                <div class="comparison-item ours">
+                    <h3>IF-Corr + MF-Filter (Ours)</h3>
+                    <img src="demo_sample_jpg/Corr_Filter/AMI_WSJ21-Array1-5_T21c020j.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Corr_Filter/AMI_WSJ21-Array1-5_T21c020j.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + MF-Filter</h3>
+                    <img src="demo_sample_jpg/Raw_Filter/AMI_WSJ21-Array1-5_T21c020j.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Filter/AMI_WSJ21-Array1-5_T21c020j.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + SF-Mask</h3>
+                    <img src="demo_sample_jpg/Raw_Mask/AMI_WSJ21-Array1-5_T21c020j.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Mask/AMI_WSJ21-Array1-5_T21c020j.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + Mapping</h3>
+                    <img src="demo_sample_jpg/Raw_Mapping/AMI_WSJ21-Array1-5_T21c020j.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Mapping/AMI_WSJ21-Array1-5_T21c020j.wav"></audio>
+                </div>
+            </div>
+        </div>
+        <!-- Sample 10 -->
+        <div class="sample-item" data-sample="10">
+            <div class="comparison-grid">
+                <div class="comparison-item input">
+                    <h3>Input (Reverberant)</h3>
+                    <img src="demo_sample_jpg/input/AMI_WSJ27-Array2-1_T37c020m.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/input/AMI_WSJ27-Array2-1_T37c020m.wav"></audio>
+                </div>
+                <div class="comparison-item ours">
+                    <h3>IF-Corr + MF-Filter (Ours)</h3>
+                    <img src="demo_sample_jpg/Corr_Filter/AMI_WSJ27-Array2-1_T37c020m.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Corr_Filter/AMI_WSJ27-Array2-1_T37c020m.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + MF-Filter</h3>
+                    <img src="demo_sample_jpg/Raw_Filter/AMI_WSJ27-Array2-1_T37c020m.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Filter/AMI_WSJ27-Array2-1_T37c020m.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + SF-Mask</h3>
+                    <img src="demo_sample_jpg/Raw_Mask/AMI_WSJ27-Array2-1_T37c020m.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Mask/AMI_WSJ27-Array2-1_T37c020m.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + Mapping</h3>
+                    <img src="demo_sample_jpg/Raw_Mapping/AMI_WSJ27-Array2-1_T37c020m.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Mapping/AMI_WSJ27-Array2-1_T37c020m.wav"></audio>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sample 11 -->
+        <div class="sample-item" data-sample="11">
+            <div class="comparison-grid">
+                <div class="comparison-item input">
+                    <h3>Input (Reverberant)</h3>
+                    <img src="demo_sample_jpg/input/AMI_WSJ29-Array1-1_T39c020l.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/input/AMI_WSJ29-Array1-1_T39c020l.wav"></audio>
+                </div>
+                <div class="comparison-item ours">
+                    <h3>IF-Corr + MF-Filter (Ours)</h3>
+                    <img src="demo_sample_jpg/Corr_Filter/AMI_WSJ29-Array1-1_T39c020l.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Corr_Filter/AMI_WSJ29-Array1-1_T39c020l.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + MF-Filter</h3>
+                    <img src="demo_sample_jpg/Raw_Filter/AMI_WSJ29-Array1-1_T39c020l.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Filter/AMI_WSJ29-Array1-1_T39c020l.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + SF-Mask</h3>
+                    <img src="demo_sample_jpg/Raw_Mask/AMI_WSJ29-Array1-1_T39c020l.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Mask/AMI_WSJ29-Array1-1_T39c020l.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + Mapping</h3>
+                    <img src="demo_sample_jpg/Raw_Mapping/AMI_WSJ29-Array1-1_T39c020l.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Mapping/AMI_WSJ29-Array1-1_T39c020l.wav"></audio>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sample 12 -->
+        <div class="sample-item" data-sample="12">
+            <div class="comparison-grid">
+                <div class="comparison-item input">
+                    <h3>Input (Reverberant)</h3>
+                    <img src="demo_sample_jpg/input/AMI_WSJ29-Array1-1_T39c020q.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/input/AMI_WSJ29-Array1-1_T39c020q.wav"></audio>
+                </div>
+                <div class="comparison-item ours">
+                    <h3>IF-Corr + MF-Filter (Ours)</h3>
+                    <img src="demo_sample_jpg/Corr_Filter/AMI_WSJ29-Array1-1_T39c020q.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Corr_Filter/AMI_WSJ29-Array1-1_T39c020q.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + MF-Filter</h3>
+                    <img src="demo_sample_jpg/Raw_Filter/AMI_WSJ29-Array1-1_T39c020q.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Filter/AMI_WSJ29-Array1-1_T39c020q.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + SF-Mask</h3>
+                    <img src="demo_sample_jpg/Raw_Mask/AMI_WSJ29-Array1-1_T39c020q.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Mask/AMI_WSJ29-Array1-1_T39c020q.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + Mapping</h3>
+                    <img src="demo_sample_jpg/Raw_Mapping/AMI_WSJ29-Array1-1_T39c020q.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Mapping/AMI_WSJ29-Array1-1_T39c020q.wav"></audio>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sample 13 -->
+        <div class="sample-item" data-sample="13">
+            <div class="comparison-grid">
+                <div class="comparison-item input">
+                    <h3>Input (Reverberant)</h3>
+                    <img src="demo_sample_jpg/input/AMI_WSJ29-Array2-1_T39c0212.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/input/AMI_WSJ29-Array2-1_T39c0212.wav"></audio>
+                </div>
+                <div class="comparison-item ours">
+                    <h3>IF-Corr + MF-Filter (Ours)</h3>
+                    <img src="demo_sample_jpg/Corr_Filter/AMI_WSJ29-Array2-1_T39c0212.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Corr_Filter/AMI_WSJ29-Array2-1_T39c0212.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + MF-Filter</h3>
+                    <img src="demo_sample_jpg/Raw_Filter/AMI_WSJ29-Array2-1_T39c0212.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Filter/AMI_WSJ29-Array2-1_T39c0212.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + SF-Mask</h3>
+                    <img src="demo_sample_jpg/Raw_Mask/AMI_WSJ29-Array2-1_T39c0212.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Mask/AMI_WSJ29-Array2-1_T39c0212.wav"></audio>
+                </div>
+                <div class="comparison-item">
+                    <h3>SF-Raw + Mapping</h3>
+                    <img src="demo_sample_jpg/Raw_Mapping/AMI_WSJ29-Array2-1_T39c0212.jpg" class="spec-img">
+                    <audio controls src="demo_sample_norm/Raw_Mapping/AMI_WSJ29-Array2-1_T39c0212.wav"></audio>
+                </div>
+            </div>
+            
+          <!-- 아래 Sample 1~13은 기존 내용 그대로 두되,
+               "IF-Corr + MF-Filter (Ours)" 블록만
+               <div class="comparison-item ours"> 와 badge를 동일하게 적용하면 통일감이 더 좋아져요. -->
+
+          <!-- (중략) 너가 붙여둔 sample-item들 그대로 두어도 동작합니다 -->
+          <!-- 다만 각 sample-item의 data-sample 값이 option value와 일치하는지만 확인! -->
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      © 2025 Sogang University. All rights reserved.
+    </footer>
+  </div>
+
+  <script>
+    function changeSample() {
+      const selectedValue = document.getElementById('sample-select').value;
+      const allSamples = document.querySelectorAll('.sample-item');
+
+      // Stop all audio elements
+      document.querySelectorAll('audio').forEach(audio => {
+        audio.pause();
+        audio.currentTime = 0;
+      });
+
+      // Hide all samples
+      allSamples.forEach(sample => sample.classList.remove('active'));
+
+      // Show selected sample
+      const selectedSample = document.querySelector(`.sample-item[data-sample="${selectedValue}"]`);
+      if (selectedSample) selectedSample.classList.add('active');
+    }
+  </script>
+</body>
+</html>
+
+
